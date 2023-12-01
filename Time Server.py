@@ -1,7 +1,7 @@
 import socket
 from datetime import datetime, timezone, timedelta
 
-# input server adress
+# input server address
 print("Enter time server name or IP address")
 # read input
 input_server = input()
@@ -16,7 +16,7 @@ server_address = (input_server, 37)
 udp_socket.sendto(b"", server_address)
 
 # Receive data
-data = udp_socket.recvfrom(4)
+data, _ = udp_socket.recvfrom(4)  # Extract only the received data
 
 # Convert data to integer
 time_value = int.from_bytes(data, byteorder='big')
