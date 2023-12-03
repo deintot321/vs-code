@@ -1,24 +1,21 @@
 import socket
+import struct
 
-# Set up the multicast group and port
-multicast_group = '225.4.5.6'
-port = 9000
+MCAST_GRP = '225.4.5.6'
+MCAST_PORT = 9000
 
 # Create a UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-# Bind the socket to the server address
-sock.bind(('', port))
+# Bind the socket to the port
+sock.bind(('', MCAST_PORT))
 
 # Tell the operating system to add the socket to the multicast group
-group = socket.inet_aton(multicast_group)
-mreq = socket.inet_aton('0.0.0.0') + group
+group = socket.inet_aton(MCAST_GRP)
+mreq = struct.pack('4sL', group, socket.INADDR_ANY)
 sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
-print(f"Waiting for messages in multicast group {multicast_group} on port {port}...\n")
-
+# Receive/respond loop
 while True:
-    # Receive the data and print it
-    data, address = sock.recvfrom(1024)  # Buffer size is 1024 bytes
-    print(f"Received message from {address}:")
-    print(data.decode('utf-8'))  # Assuming messages are in UTF-8 encoding
+    data, address = sock.recvfrom(1024)
+    print(data.decode('utf-8'))
