@@ -1,4 +1,5 @@
 import socket
+import struct
 
 # Set up the multicast group and port
 multicast_group = '225.4.5.6'
