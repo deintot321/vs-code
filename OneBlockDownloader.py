@@ -19,4 +19,4 @@ def download_file(url):
 
 
 #python3 OneBlockDownloader.py http://fsn.icmp.hetzner.com/1GB.bin
-
+#python3 OneBlockDownloader.py http://www.zoomify.com/assets/thumbnails/thmbExpressLg.jpg

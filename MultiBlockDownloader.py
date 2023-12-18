@@ -28,4 +28,4 @@ def download_file_in_blocks(url, block_size=16 * 1024 * 1024):
         
         print(f"File '{file_name}' downloaded in blocks of {block_size} bytes.")
 
-#python3 MultiBlockDownloader.py http://speed.hetzner.de/1GB.bin 8*1024*1024
+#python3 MultiBlockDownloader.py http://fsn.icmp.hetzner.com/1GB.bin 8*1024*1024
