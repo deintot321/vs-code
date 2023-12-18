@@ -1,4 +1,3 @@
-
 import requests
 import os
 from datetime import datetime
@@ -19,5 +18,5 @@ def download_file(url):
         print(f"Failed to download file from {url}")
 
 
-# OneBlockDownloader.py http://speed.hetzner.de/1GB.bin 
+#python3 OneBlockDownloader.py http://fsn.icmp.hetzner.com/1GB.bin
 
