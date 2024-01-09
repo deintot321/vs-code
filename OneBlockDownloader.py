@@ -43,3 +43,4 @@ download_file(sys.argv[1])
 
 #python3 OneBlockDownloader.py http://fsn.icmp.hetzner.com/1GB.bin
 #python3 OneBlockDownloader.py http://www.zoomify.com/assets/thumbnails/thmbExpressLg.jpg
+#python3 OneBlockDownloader.py http://speedtest.belwue.net/1G

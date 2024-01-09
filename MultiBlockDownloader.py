@@ -1,41 +1,67 @@
-import os
-from datetime import datetime
-from urllib.parse import urlparse
-import sys
 import socket
-def download_file_in_blocks(url, block_size=1024*1024):
-    parsed_url = urlparse(url)
-    file_name = parsed_url.path.split("/")[-1] or str(datetime.now().timestamp()) + ".bin"
+import sys
+from datetime import datetime
 
-    host = parsed_url.netloc
-    path = parsed_url.path if parsed_url.path else '/'
+buffer_size = int(4*1024*1024)
 
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((host, 80))
-        request = f"GET {path} HTTP/1.1\r\nHost: {host}\r\n\r\n"
-        s.sendall(request.encode())
-        response = b''
-        while True:
-            data = s.recv(block_size)
-            if not data:
-                break
-            response += data
-        content_start = response.find(b'\r\n\r\n') + 4
-        with open(file_name, 'wb') as file:
-            file.write(response[content_start:])
-            print(f"File '{file_name}' downloaded successfully.")
+def download_file(url, block_size):
+    parts = url.split("/")
+    host = parts[2]
+    path = "/" + "/".join(parts[3:])
+    port = 80
+    filename = ""
+    time = datetime.now()
+    if parts[3] != "":
+        filename = parts[-1]
+    else:
+        filename = time.strftime("%H_%M_%S")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((host, port))
 
-    except Exception as e:
-        print(f"Failed to download file from {url}: {e}")
-    finally:
-        if s:
-            s.close()
+        head_request = f"HEAD {path} HTTP/1.1\r\nHost: {host}\r\n\r\n"
+        s.sendall(head_request.encode())
+        responsee = s.recv(1024)
+        response = responsee.decode()
+        supports_range_requests = "Accept-Ranges: bytes" in response
+        print(response)
 
-if len(sys.argv) > 2:
-    download_file_in_blocks(sys.argv[1], int(sys.argv[2]))
-else:
-    download_file_in_blocks(sys.argv[1])
+        if supports_range_requests:
+            content_length = int(response.split("Content-Length:")[1].split("\r\n")[0])
+            print(content_length)  
+            print("Content supports range requests.")
+            blocks =(content_length-1)//block_size+1
+            with open(filename, "wb") as file:
+                for i in range(0, content_length, block_size):
+                    range_start = i
+                    range_end = min(i + block_size - 1, content_length - 1)
+                    get_request = f"GET {path} HTTP/1.1\r\nHost: {host}\r\nRange: bytes={range_start}-{range_end}\r\n\r\n"
+                    s.sendall(get_request.encode())
+                    get_response = b''
+                    print(content_length)
+                    while len(get_response) < min(block_size, content_length-range_start-1):
+                        get_response += s.recv(buffer_size)
+                    print(f"Block {range_start//block_size+1}/{blocks} downloaded.")
+                    content = get_response.split(b"\r\n\r\n", 1)[-1]
+                    file.write(content)
+        else:
+            request = f"GET {path} HTTP/1.1\r\nHost: {host}\r\n\r\n"
+            s.sendall(request.encode())
+            content_length = None
+            data = b""
+            while True:
+                response = s.recv(1024)
+                if not response:
+                    break
+                data += response
+            content = data.split(b"\r\n\r\n", 1)[-1]
+            file.write(content)
 
-#python3 MultiBlockDownloader.py http://fsn.icmp.hetzner.com/1GB.bin 8388608
-#python3 MultiBlockDownloader.py http://www.zoomify.com/assets/thumbnails/thmbExpressLg.jpg 8388608
+    print("\nDownload completed.")
+
+url = sys.argv[1]
+block_size = 16 * 1024  # Default block size of 16 MB
+download_file(url, block_size)
+
+#python3 MultiBlockDownloader.py http://speedtest.belwue.net/1G
+#python3 MultiBlockDownloader.py http://www.zoomify.com/assets/thumbnails/thmbExpressLg.jpg
+#8388608
